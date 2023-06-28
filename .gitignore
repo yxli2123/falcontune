@@ -113,3 +113,6 @@ google-cloud-credentials.json
 .envs-dev
 .envs
 secret.yaml
+
+#ckpt
+gptq_model-4bit--1g.safetensors
