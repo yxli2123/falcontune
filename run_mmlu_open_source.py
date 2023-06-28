@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 import time
-import utils
+# import utils
 
 import pandas as pd
 import tensor_parallel as tp
