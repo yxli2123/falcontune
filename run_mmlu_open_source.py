@@ -303,7 +303,7 @@ if __name__ == "__main__":
     parser.add_argument('--reduced_rank', type=int, default=8)
     parser.add_argument('--act_quant', action='store_true')
     parser.add_argument('--model', type=str, default='falcon-40b-instruct-4bit')
-    parser.add_argument('--weight', type=str, default='gptq_model-4bit--1g.safetensors')
+    parser.add_argument('--weights', type=str, default='gptq_model-4bit--1g.safetensors')
     args = parser.parse_args()
 
     main(args.ckpt_dir, args.param_size, args.model_type)
