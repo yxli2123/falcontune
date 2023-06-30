@@ -63,7 +63,6 @@ def svd_init(module, name=''):
 
             tmp.lora_A.default.weight.data = L
             tmp.lora_B.default.weight.data = R
-            # TODO: add SVD
 
 
     for name1, child in module.named_children():
@@ -111,3 +110,6 @@ if __name__ == '__main__':
     del fmodel
 
     svd_init(dmodel)
+
+    for name, param in dmodel.named_parameters():
+        print(name, param.mean())
