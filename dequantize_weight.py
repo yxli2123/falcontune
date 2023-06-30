@@ -61,8 +61,9 @@ if __name__ == '__main__':
     )
 
     model = get_peft_model(falcon, lora_config)
-    print(falcon.state_dict().keys(), len(falcon.state_dict().keys()))
-    print(model.state_dict().keys(), len(model.state_dict().keys()))
+    for falcon_name, lora_name in zip(falcon.state_dict().keys(), model.state_dict().keys()):
+        print(falcon_name, lora_name)
+
 
     # svd_init(
     #     model,
