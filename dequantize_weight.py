@@ -50,7 +50,6 @@ if __name__ == '__main__':
                                    backend=args.backend,
                                    half=False)
 
-    print(falcon.state_dict())
 
     lora_config = LoraConfig(
         r=args.lora_r,
@@ -62,11 +61,8 @@ if __name__ == '__main__':
     )
 
     model = get_peft_model(falcon, lora_config)
-
-    print(model.state_dict())
-
-    layers = find_4bit_layers(model)
-    print(layers)
+    print(falcon.state_dict().keys(), len(falcon.state_dict().keys()))
+    print(model.state_dict().keys(), len(model.state_dict().keys()))
 
     # svd_init(
     #     model,
