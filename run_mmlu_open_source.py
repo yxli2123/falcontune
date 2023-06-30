@@ -232,7 +232,7 @@ def batch_infer(model, tokenizer, prompts):
         encode_inputs = prepare_input(tokenizer, batch_input)
         outputs = model.generate(**encode_inputs, max_new_tokens=1, pad_token_id=tokenizer.pad_token_id)
         answers.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
-    print(answers)
+    #print(answers)
     answers = [answer[-1] for answer in answers]
     return answers
 
@@ -246,13 +246,12 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
         args.model,
         args.weights,
         backend=args.backend)
-
-    if args.lora_apply_dir is not None:
-        model = load_adapter(model, lora_apply_dir=args.lora_apply_dir)
-
+    tokenizer.padding_side='left'
     if getattr(model, 'loaded_in_4bit', False):
         model_to_half(model)
 
+
+    print(model)
     wrapper = AMPWrapper(model)
     wrapper.apply_generate()
 
@@ -302,8 +301,10 @@ if __name__ == "__main__":
     parser.add_argument('--num_bits', type=int, default=4)
     parser.add_argument('--reduced_rank', type=int, default=8)
     parser.add_argument('--act_quant', action='store_true')
-    parser.add_argument('--model', type=str, default='falcon-40b-instruct-4bit')
+    parser.add_argument('--model', type=str, default='falcon-7b-instruct-4bit')
     parser.add_argument('--weights', type=str, default='gptq_model-4bit--1g.safetensors')
+    parser.add_argument('--backend', type=str, default='triton', required=False, help='Change the default backend.')
+
     args = parser.parse_args()
 
     main(args.ckpt_dir, args.param_size, args.model_type)

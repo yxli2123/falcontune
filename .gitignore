@@ -116,3 +116,5 @@ secret.yaml
 
 #ckpt
 gptq_model-4bit--1g.safetensors
+gptq_model-4bit-64g.safetensors
+
