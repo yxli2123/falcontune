@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    falcon = load_model(model_name=args.model_name,
+    falcon, tokenizer = load_model(model_name=args.model_name,
                         weights=args.falcon_ckpt,
                         backend=args.backend,
                         half=False)
