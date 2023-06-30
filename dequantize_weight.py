@@ -7,7 +7,9 @@ from falcontune.model import lora
 from transformers import AutoModelForCausalLM
 
 
-def find_4bit_layers(module, layers=[lora.Linear4bitLt], name=''):
+def find_4bit_layers(module, layers=None, name=''):
+    if layers is None:
+        layers = [lora.Linear4bitLt]
     if type(module) in layers:
         return {name: module}
     res = {}
@@ -16,20 +18,19 @@ def find_4bit_layers(module, layers=[lora.Linear4bitLt], name=''):
     return res
 
 
-def svd_init(module, names, bits, groupsize, quantlinear_class, name=''):
-    if isinstance(module, quantlinear_class):
-        return
+def svd_init(module, names, name=''):
 
     for attr in dir(module):
         tmp = getattr(module, attr)
-        name1 = name + '.' + attr if name != '' else attr
-        if name1 in names:
-            delattr(module, attr)
-            setattr(module, attr, quantlinear_class(bits, groupsize, tmp.in_features, tmp.out_features))
+        name_sub = name + '.' + attr if name != '' else attr
+        if name_sub in names:
+            print(name_sub)
+            dequantized_weight = tmp.dequantize()
+            print(dequantized_weight.mean())
+
 
     for name1, child in module.named_children():
-        svd_init(child, names, bits, groupsize, quantlinear_class,
-                            name + '.' + name1 if name != '' else name1)
+        svd_init(child, names, name + '.' + name1 if name != '' else name1)
 
 
 if __name__ == '__main__':
@@ -68,13 +69,14 @@ if __name__ == '__main__':
                                                   device_map='auto',
                                                   torch_dtype=torch.float,
                                                   trust_remote_code=True)
+    fmodel_dict = fmodel.state_dict()
+    del fmodel
 
-    print(dmodel)
-    print(fmodel)
+    layer_names = find_4bit_layers(dmodel)
+    print(layer_names)
+    svd_init(dmodel, layer_names)
 
-    print(dmodel.state_dict().keys())
-    print("======================================")
-    print(fmodel.state_dict().keys(), len(fmodel.state_dict().keys()))
+    dmodel_dict = dmodel.state_dict()
 
 
     # svd_init(
