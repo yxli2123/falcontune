@@ -26,9 +26,9 @@ def svd_init(module, name=''):
         if isinstance(tmp, lora.Linear4bitLt):
             dequantized_weight = tmp.dequantize_base()
             name_in_full_model = (name_sub + ".weight").replace("base_model.model.", "")
-            original_weight = fmodel_dict[name_in_full_model]
-            # error = (dequantized_weight - original_weight).pow(2).mean().sqrt().item()
-            print(name_in_full_model, dequantized_weight.shape, original_weight.shape)
+            original_weight = fmodel_dict[name_in_full_model].T
+            error = (dequantized_weight - original_weight).pow(2).mean().sqrt().item()
+            print(name_in_full_model, dequantized_weight.shape, original_weight.shape, error)
             # TODO: add SVD
 
     for name1, child in module.named_children():
