@@ -59,6 +59,10 @@ class QuantLinearBase(nn.Module):
                                    dtype=torch.int32).reshape(1, 3, 12)
 
     def dequantize_base(self):
+        self.qzeros = self.qzeros.to(self.qweight.device)
+        self.scales = self.scales.to(self.qweight.device)
+        self.g_idx = self.g_idx.to(self.qweight.device)
+
         if self.bits in [2, 4, 8]:
             zeros = torch.bitwise_right_shift(torch.unsqueeze(self.qzeros, 2).expand(-1, -1, 32 // self.bits),
                                               self.wf.unsqueeze(0)).to(
