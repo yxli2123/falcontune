@@ -83,6 +83,8 @@ if __name__ == '__main__':
     parser.add_argument("--target_modules", default="query_key_value, dense, dense_h_to_4h, dense_4h_to_h",
                         type=str, help="Target modules for LoRA.")
 
+    parser.add_argument('--lora_out_dir', type=str, default='./output/lora')
+
     args = parser.parse_args()
 
     falcon, tokenizer = load_model(model_name=args.model_name,
@@ -124,3 +126,9 @@ if __name__ == '__main__':
 
     for name, param in dmodel.named_parameters():
         print(name, param.mean())
+
+    dmodel.print_trainable_parameters()
+    dmodel.save_pretrained(args.lora_out_dir)
+
+    print("Model saved")
+
