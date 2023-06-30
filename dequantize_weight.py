@@ -61,7 +61,8 @@ def svd_init(module, name=''):
 
             result = low_rank_decomposition(original_weight - dequantized_weight, reduced_rank=args.lora_r)
             L, R = result['L'], result['R']
-
+            print("A", tmp.lora_A.default.weight.shape)
+            print("B", tmp.lora_B.default.weight.shape)
             tmp.lora_A.default.weight.data = R
             tmp.lora_B.default.weight.data = L
 
