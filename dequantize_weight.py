@@ -5,6 +5,7 @@ from peft import LoraConfig, get_peft_model
 import argparse
 from falcontune.model import lora
 from transformers import AutoModelForCausalLM
+import os
 
 
 def low_rank_decomposition(weight, reduced_rank=32):
@@ -88,7 +89,8 @@ if __name__ == '__main__':
                                    weights=args.falcon_ckpt_q,
                                    backend=args.backend,
                                    half=False)
-
+    print("========>Loading quantized model")
+    os.system("nvidia-smi")
 
     lora_config = LoraConfig(
         r=args.lora_r,
@@ -101,6 +103,9 @@ if __name__ == '__main__':
 
     dmodel = get_peft_model(falcon, lora_config)
 
+    print("========>Adding LoRA")
+    os.system("nvidia-smi")
+
     fmodel = AutoModelForCausalLM.from_pretrained(args.falcon_ckpt_f,
                                                   device_map='auto',
                                                   torch_dtype=torch.float,
@@ -109,7 +114,13 @@ if __name__ == '__main__':
     print(fmodel_dict.keys())
     del fmodel
 
+    print("========>Loading Full-precision Model")
+    os.system("nvidia-smi")
+
     svd_init(dmodel)
+
+    print("========>Replace LoRA with SVD")
+    os.system("nvidia-smi")
 
     for name, param in dmodel.named_parameters():
         print(name, param.mean())
