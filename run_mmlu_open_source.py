@@ -302,7 +302,7 @@ if __name__ == "__main__":
     parser.add_argument('--act_quant', action='store_true')
     parser.add_argument('--model', type=str, default='falcon-7b-instruct-4bit')
     parser.add_argument('--weights', type=str, default='gptq_model-4bit--1g.safetensors')
-    parser.add_argument('--backend', type=str, default='triton', required=False, help='Change the default backend.')
+    parser.add_argument('--backend', type=str, default='torch', required=False, help='Change the default backend.')
 
     args = parser.parse_args()
 
