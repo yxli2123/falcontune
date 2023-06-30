@@ -109,7 +109,7 @@ if __name__ == '__main__':
     os.system("nvidia-smi")
 
     fmodel = AutoModelForCausalLM.from_pretrained(args.falcon_ckpt_f,
-                                                  device_map='auto',
+                                                  device_map='cpu',
                                                   torch_dtype=torch.float,
                                                   trust_remote_code=True)
     fmodel = fmodel.to('cpu')
