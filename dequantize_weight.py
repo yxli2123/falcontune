@@ -3,9 +3,19 @@ from falcontune.model.lora import load_adapter
 import torch
 from peft import LoraConfig, get_peft_model
 import argparse
+from falcontune.model import lora
 
 
-def replace_4bit_linear(module, names, bits, groupsize, quantlinear_class, name=''):
+def find_4bit_layers(module, layers=[lora.Linear4bitLt], name=''):
+    if type(module) in layers:
+        return {name: module}
+    res = {}
+    for name1, child in module.named_children():
+        res.update(find_4bit_layers(child, layers=layers, name=name + '.' + name1 if name != '' else name1))
+    return res
+
+
+def svd_init(module, names, bits, groupsize, quantlinear_class, name=''):
     if isinstance(module, quantlinear_class):
         return
 
@@ -30,14 +40,17 @@ if __name__ == '__main__':
     parser.add_argument("--lora_r", default=8, type=int, help="Default: %(default)s")
     parser.add_argument("--lora_alpha", default=16, type=int, help="Default: %(default)s")
     parser.add_argument("--lora_dropout", default=0.05, type=float, help="Default: %(default)s")
-    parser.add_argument("--target_modules", default="['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h']", type=str, help="Target modules for LoRA.")
+    parser.add_argument("--target_modules", default="['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h']",
+                        type=str, help="Target modules for LoRA.")
 
     args = parser.parse_args()
 
     falcon, tokenizer = load_model(model_name=args.model_name,
-                        weights=args.falcon_ckpt,
-                        backend=args.backend,
-                        half=False)
+                                   weights=args.falcon_ckpt,
+                                   backend=args.backend,
+                                   half=False)
+
+    print(falcon.state_dict())
 
     lora_config = LoraConfig(
         r=args.lora_r,
@@ -48,15 +61,14 @@ if __name__ == '__main__':
         task_type="CAUSAL_LM",
     )
 
-
-    print(falcon)
-    for name, param in falcon.named_parameters():
-        print(name, param.shape, param.min().item(), param.max().item(), param.mean().item())
-
-
-
     model = get_peft_model(falcon, lora_config)
 
-    print(model)
-    for name, param in model.named_parameters():
-        print(name, param.shape, param.min().item(), param.max().item(), param.mean().item())
+    print(model.state_dict())
+
+    layers = find_4bit_layers(model)
+    print(layers)
+
+    # svd_init(
+    #     model,
+    #     layers,
+    # )
