@@ -48,6 +48,8 @@ if __name__ == '__main__':
         task_type="CAUSAL_LM",
     )
 
+    print(falcon.config)
+
     model = get_peft_model(falcon, lora_config)
 
     print(model)
