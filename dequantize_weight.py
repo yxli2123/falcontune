@@ -71,9 +71,9 @@ def svd_init(module, name=''):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='falcon-7b-instruct-4bit')
-    parser.add_argument('--falcon_ckpt_q', type=str, default='gptq_model-4bit-64g.safetensors')
-    parser.add_argument('--falcon_ckpt_f', type=str, default='tiiuae/falcon-7b-instruct')
+    parser.add_argument('--model_name', type=str, default='falcon-40b-instruct-4bit')
+    parser.add_argument('--falcon_ckpt_q', type=str, default='gptq_model-4bit--14g.safetensors')
+    parser.add_argument('--falcon_ckpt_f', type=str, default='tiiuae/falcon-40b-instruct')
     parser.add_argument('--backend', type=str, default='torch')
 
     parser.add_argument("--lora_r", default=8, type=int, help="Default: %(default)s")
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     parser.add_argument("--target_modules", default="query_key_value, dense, dense_h_to_4h, dense_4h_to_h",
                         type=str, help="Target modules for LoRA.")
 
-    parser.add_argument('--lora_out_dir', type=str, default='./output/lora')
+    parser.add_argument('--lora_out_dir', type=str, default='./output/falcon_40b/lora')
 
     args = parser.parse_args()
 
@@ -103,6 +103,7 @@ if __name__ == '__main__':
     )
 
     dmodel = get_peft_model(falcon, lora_config)
+    dmodel = dmodel.to('cpu')
 
     print("========>Adding LoRA")
     os.system("nvidia-smi")
@@ -111,6 +112,7 @@ if __name__ == '__main__':
                                                   device_map='auto',
                                                   torch_dtype=torch.float,
                                                   trust_remote_code=True)
+    fmodel = fmodel.to('cpu')
     fmodel_dict = fmodel.state_dict()
     print(fmodel_dict.keys())
     del fmodel
