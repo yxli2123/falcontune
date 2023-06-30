@@ -13,6 +13,7 @@ from falcontune.data import make_prompt
 from falcontune.model import load_model
 from falcontune.model.lora import load_adapter
 from falcontune.model.utils import model_to_half
+from peft import LoraConfig, get_peft_model
 
 TASKS = [
     'abstract_algebra',
@@ -245,6 +246,18 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
         args.model,
         args.weights,
         backend=args.backend)
+
+    lora_config = LoraConfig(
+        r=args.lora_r,
+        lora_alpha=args.lora_alpha,
+        target_modules=['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h'],
+        lora_dropout=args.lora_dropout,
+        bias="none",
+        task_type="CAUSAL_LM",
+    )
+
+    model = get_peft_model(model, lora_config)
+
     tokenizer.padding_side = 'left'
     model = model.to('cuda')
     if getattr(model, 'loaded_in_4bit', False):
@@ -303,6 +316,11 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default='falcon-7b-instruct-4bit')
     parser.add_argument('--weights', type=str, default='gptq_model-4bit--1g.safetensors')
     parser.add_argument('--backend', type=str, default='torch', required=False, help='Change the default backend.')
+    parser.add_argument("--lora_r", default=8, type=int, help="Default: %(default)s")
+    parser.add_argument("--lora_alpha", default=16, type=int, help="Default: %(default)s")
+    parser.add_argument("--lora_dropout", default=0.05, type=float, help="Default: %(default)s")
+    parser.add_argument("--target_modules", default="['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h']",
+                        type=str, help="Target modules for LoRA.")
 
     args = parser.parse_args()
 

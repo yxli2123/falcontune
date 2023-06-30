@@ -80,7 +80,7 @@ if __name__ == '__main__':
     parser.add_argument("--lora_r", default=8, type=int, help="Default: %(default)s")
     parser.add_argument("--lora_alpha", default=16, type=int, help="Default: %(default)s")
     parser.add_argument("--lora_dropout", default=0.05, type=float, help="Default: %(default)s")
-    parser.add_argument("--target_modules", default="['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h']",
+    parser.add_argument("--target_modules", default="query_key_value, dense, dense_h_to_4h, dense_4h_to_h",
                         type=str, help="Target modules for LoRA.")
 
     args = parser.parse_args()
