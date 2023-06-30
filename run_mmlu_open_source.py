@@ -247,16 +247,8 @@ def main(ckpt_dir: str, param_size: str, model_type: str):
         args.weights,
         backend=args.backend)
 
-    lora_config = LoraConfig(
-        r=args.lora_r,
-        lora_alpha=args.lora_alpha,
-        target_modules=['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h'],
-        lora_dropout=args.lora_dropout,
-        bias="none",
-        task_type="CAUSAL_LM",
-    )
-
-    model = get_peft_model(model, lora_config)
+    if args.lora_apply_dir is not None:
+        model = load_adapter(model, lora_apply_dir=args.lora_apply_dir)
 
     tokenizer.padding_side = 'left'
     model = model.to('cuda')
@@ -321,7 +313,8 @@ if __name__ == "__main__":
     parser.add_argument("--lora_dropout", default=0.05, type=float, help="Default: %(default)s")
     parser.add_argument("--target_modules", default="['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h']",
                         type=str, help="Target modules for LoRA.")
-
+    parser.add_argument("--lora_apply_dir", default="./lora_adapter",
+                        type=str, help="path to lora adapter")
     args = parser.parse_args()
 
     main(args.ckpt_dir, args.param_size, args.model_type)
