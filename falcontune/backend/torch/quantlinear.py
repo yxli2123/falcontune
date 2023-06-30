@@ -65,7 +65,7 @@ class QuantLinear(QuantLinearBase):
         out_shape = x.shape[:-1] + (self.outfeatures,)
         x = x.reshape(-1, x.shape[-1])
 
-        weights = self.dequantize()
+        weights = self.dequantize_base()
         out = torch.matmul(x.half(), weights)
 
         out = out.reshape(out_shape)
