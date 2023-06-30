@@ -18,19 +18,21 @@ def find_4bit_layers(module, layers=None, name=''):
     return res
 
 
-def svd_init(module, names, name=''):
+def svd_init(module, name=''):
 
     for attr in dir(module):
         tmp = getattr(module, attr)
         name_sub = name + '.' + attr if name != '' else attr
-        if name_sub in names:
-            print(name_sub)
+        if isinstance(tmp, lora.Linear4bitLt):
             dequantized_weight = tmp.dequantize_base()
-            print(dequantized_weight.mean())
-
+            name_in_full_model = (name_sub + ".weight").replace("base_model.model.", "")
+            original_weight = fmodel_dict[name_in_full_model]
+            error = (dequantized_weight - original_weight).pow(2).mean().sqrt().item()
+            print(name_in_full_model, error)
+            # TODO: add SVD
 
     for name1, child in module.named_children():
-        svd_init(child, names, name + '.' + name1 if name != '' else name1)
+        svd_init(child, name + '.' + name1 if name != '' else name1)
 
 
 if __name__ == '__main__':
@@ -70,16 +72,7 @@ if __name__ == '__main__':
                                                   torch_dtype=torch.float,
                                                   trust_remote_code=True)
     fmodel_dict = fmodel.state_dict()
+    print(fmodel_dict.keys())
     del fmodel
 
-    layer_names = find_4bit_layers(dmodel)
-    print(layer_names)
-    svd_init(dmodel, layer_names)
-
-    dmodel_dict = dmodel.state_dict()
-
-
-    # svd_init(
-    #     model,
-    #     layers,
-    # )
+    svd_init(dmodel)
