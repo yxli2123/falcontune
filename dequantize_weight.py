@@ -7,6 +7,34 @@ from falcontune.model import lora
 from transformers import AutoModelForCausalLM
 
 
+def low_rank_decomposition(weight, reduced_rank=32):
+    """
+    :param          weight: The matrix to decompose, of shape (H, W)
+    :param    reduced_rank: the final rank
+    :return:
+    """
+
+    """parameter_ratio = rank * (H + W) / (H * W)"""
+    """rank_ratio = """
+    matrix_dimension = len(weight.size())
+    assert matrix_dimension == 2, "Only Support 2D matrix"
+    H, W = weight.size()
+
+    # Use SVD to decompose a matrix, default full_matrices is False to save parameters
+    U, S, Vh = torch.linalg.svd(weight, full_matrices=False)
+    rank = torch.count_nonzero(S)
+    is_full_rank = rank == min(H, W)
+
+    L = U @ (torch.sqrt(torch.diag(S)[:, 0:reduced_rank]))
+    R = torch.sqrt(torch.diag(S)[0:reduced_rank, :]) @ Vh
+
+    print(f"W: ({H},{W}) | Rank: {rank} | U:{U.shape} | S:{S.shape} | Vh:{Vh.shape}")
+    print(f"Reduced Rank: {reduced_rank} | Num Parameters: {(H + W) * reduced_rank}")
+    print(f"L: {L.shape} | R: {R.shape}")
+
+    return {"L": L, "R": R, "U": U, "S": S, "Vh": Vh, 'reduced_rank': reduced_rank}
+
+
 def find_4bit_layers(module, layers=None, name=''):
     if layers is None:
         layers = [lora.Linear4bitLt]
@@ -29,7 +57,14 @@ def svd_init(module, name=''):
             original_weight = fmodel_dict[name_in_full_model].T
             error = (dequantized_weight - original_weight).pow(2).mean().sqrt().item()
             print(name_in_full_model, dequantized_weight.shape, original_weight.shape, error)
+
+            result = low_rank_decomposition(original_weight - dequantized_weight, reduced_rank=args.lora_r)
+            L, R = result['L'], result['R']
+
+            tmp.lora_A.default.weight.data = L
+            tmp.lora_B.default.weight.data = R
             # TODO: add SVD
+
 
     for name1, child in module.named_children():
         svd_init(child, name + '.' + name1 if name != '' else name1)
