@@ -47,6 +47,7 @@ def find_4bit_layers(module, layers=None, name=''):
     return res
 
 
+@torch.no_grad()
 def svd_init(module, name=''):
 
     for attr in dir(module):
@@ -103,7 +104,6 @@ if __name__ == '__main__':
     )
 
     dmodel = get_peft_model(falcon, lora_config)
-    dmodel = dmodel.to('cpu')
 
     print("========>Adding LoRA")
     os.system("nvidia-smi")
@@ -112,7 +112,6 @@ if __name__ == '__main__':
                                                   device_map='auto',
                                                   torch_dtype=torch.float,
                                                   trust_remote_code=True)
-    fmodel = fmodel.to('cpu')
     fmodel_dict = fmodel.state_dict()
     print(fmodel_dict.keys())
     del fmodel
