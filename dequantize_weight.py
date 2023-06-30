@@ -25,7 +25,7 @@ def svd_init(module, names, name=''):
         name_sub = name + '.' + attr if name != '' else attr
         if name_sub in names:
             print(name_sub)
-            dequantized_weight = tmp.dequantize()
+            dequantized_weight = tmp.dequantize_base()
             print(dequantized_weight.mean())
 
 
