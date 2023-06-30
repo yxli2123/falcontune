@@ -6,10 +6,7 @@ from falcontune.backend.base import QuantLinearBase
 class QuantLinear(QuantLinearBase):
     framework = 'torch'
 
-    def forward(self, x):
-        out_shape = x.shape[:-1] + (self.outfeatures,)
-        x = x.reshape(-1, x.shape[-1])
-
+    def dequantize(self):
         if self.bits in [2, 4, 8]:
             zeros = torch.bitwise_right_shift(torch.unsqueeze(self.qzeros, 2).expand(-1, -1, 32 // self.bits),
                                               self.wf.unsqueeze(0)).to(
@@ -46,7 +43,8 @@ class QuantLinear(QuantLinearBase):
             raise NotImplemented('bits in [2, 3, 4, 8]')
 
         weight = weight.reshape(weight.shape[0] * weight.shape[1], weight.shape[2])
-        num_itr = self.g_idx.shape[0] // x.shape[-1]
+        # num_itr = self.g_idx.shape[0] // x.shape[-1]
+        num_itr = self.g_idx.shape[0] // self.infeatures
 
         if num_itr == 1:
             weights = (self.scales[self.g_idx.long()] * (weight - zeros[self.g_idx.long()]))
@@ -61,6 +59,13 @@ class QuantLinear(QuantLinearBase):
                 weights.append(scale_i[g_idx_i.long()] * (weight_i - zeros_i[g_idx_i.long()]))
             weights = torch.cat(weights, dim=1)
 
+        return weights
+
+    def forward(self, x):
+        out_shape = x.shape[:-1] + (self.outfeatures,)
+        x = x.reshape(-1, x.shape[-1])
+
+        weights = self.dequantize()
         out = torch.matmul(x.half(), weights)
 
         out = out.reshape(out_shape)
