@@ -42,7 +42,7 @@ if __name__ == '__main__':
     lora_config = LoraConfig(
         r=args.lora_r,
         lora_alpha=args.lora_alpha,
-        target_modules=args.target_modules,
+        target_modules=['query_key_value', 'dense', 'dense_h_to_4h', 'dense_4h_to_h'],
         lora_dropout=args.lora_dropout,
         bias="none",
         task_type="CAUSAL_LM",
