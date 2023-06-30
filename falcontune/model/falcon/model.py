@@ -1151,6 +1151,10 @@ def load_model(llm_config, checkpoint, half=False, backend='triton'):
 
             layers = find_layers(model)
             del layers['lm_head']
+            print("====================Before acting replace_4bit_linear===================")
+            print(model)
+            for name, param in model.named_parameters():
+                print(name, param.shape, param.mean())
 
             replace_4bit_linear(
                 model,
