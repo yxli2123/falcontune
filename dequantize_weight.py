@@ -60,11 +60,11 @@ def svd_init(module, name=''):
             error = (dequantized_weight - original_weight).pow(2).mean().sqrt().item()
             print(name_in_full_model, dequantized_weight.shape, original_weight.shape, error)
 
-            original_weight = original_weight.to('cuda')
+            dequantized_weight = dequantized_weight.to(original_weight.device)
             result = low_rank_decomposition(original_weight - dequantized_weight, reduced_rank=args.lora_r)
             L, R = result['L'], result['R']
-            tmp.lora_A.default.weight.data = L.T
-            tmp.lora_B.default.weight.data = R.T
+            tmp.lora_A.default.weight.data = L.T.to('cpu')
+            tmp.lora_B.default.weight.data = R.T.to('cpu')
 
     for name1, child in module.named_children():
         svd_init(child, name + '.' + name1 if name != '' else name1)
@@ -104,6 +104,7 @@ if __name__ == '__main__':
     )
 
     dmodel = get_peft_model(falcon, lora_config)
+    dmodel = dmodel.to('cpu')
 
     print("========>Adding LoRA")
     os.system("nvidia-smi")
@@ -114,7 +115,6 @@ if __name__ == '__main__':
                                                   trust_remote_code=True)
     fmodel_dict = fmodel.state_dict()
     del fmodel
-    fmodel_dict = {k: v.to('cpu') for k, v in fmodel_dict.items()}
 
     print("========>Loading Full-precision Model")
     os.system("nvidia-smi")
