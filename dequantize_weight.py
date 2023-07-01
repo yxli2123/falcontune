@@ -57,14 +57,15 @@ def svd_init(module, name=''):
             dequantized_weight = tmp.dequantize_base()
             name_in_full_model = (name_sub + ".weight").replace("base_model.model.", "")
             original_weight = fmodel_dict[name_in_full_model].T
+            dequantized_weight = dequantized_weight.to('cuda')
             error = (dequantized_weight - original_weight).pow(2).mean().sqrt().item()
             print(name_in_full_model, dequantized_weight.shape, dequantized_weight.device,
                   original_weight.shape, original_weight.device, error)
 
             result = low_rank_decomposition(original_weight - dequantized_weight, reduced_rank=args.lora_r)
             L, R = result['L'], result['R']
-            tmp.lora_A.default.weight.data = L.T
-            tmp.lora_B.default.weight.data = R.T
+            tmp.lora_A.default.weight.data = L.T.to('cpu')
+            tmp.lora_B.default.weight.data = R.T.to('cpu')
 
     for name1, child in module.named_children():
         svd_init(child, name + '.' + name1 if name != '' else name1)
