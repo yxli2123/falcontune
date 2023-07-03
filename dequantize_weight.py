@@ -54,6 +54,13 @@ def svd_init(module, name=''):
         tmp = getattr(module, attr)
         name_sub = name + '.' + attr if name != '' else attr
         if isinstance(tmp, lora.Linear4bitLt):
+            print("==================")
+            print("qzeros", tmp.qzeros.dtype, tmp.qzeros.shape)
+            print("scales", tmp.scales.dtype, tmp.scales.shape)
+            print("g_idx", tmp.g_idx.dtype, tmp.g_idx.shape)
+            print("wf", tmp.wf.dtype, tmp.wf.shape)
+            print("qweight", tmp.qweight.dtype, tmp.qweight.shape)
+
             dequantized_weight = tmp.dequantize_base()
             name_in_full_model = (name_sub + ".weight").replace("base_model.model.", "")
             original_weight = fmodel_dict[name_in_full_model].T

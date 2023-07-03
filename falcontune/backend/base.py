@@ -66,8 +66,7 @@ class QuantLinearBase(nn.Module):
 
         if self.bits in [2, 4, 8]:
             zeros = torch.bitwise_right_shift(torch.unsqueeze(self.qzeros, 2).expand(-1, -1, 32 // self.bits),
-                                              self.wf.unsqueeze(0)).to(
-                torch.int16 if self.bits == 8 else torch.int8)
+                                              self.wf.unsqueeze(0)).to(torch.int16 if self.bits == 8 else torch.int8)
             torch.bitwise_and(zeros, (2 ** self.bits) - 1, out=zeros)
 
             zeros = zeros + 1
