@@ -55,7 +55,9 @@ def svd_init(module, name=''):
         name_sub = name + '.' + attr if name != '' else attr
         if isinstance(tmp, lora.Linear4bitLt):
             print("==================")
-            print("qzeros", tmp.qzeros.dtype, tmp.qzeros.shape)
+            print("in_feature", tmp.infeatures)
+            print("out_feature", tmp.outfeatures)
+            print("group size", tmp.groupsize)
             print("scales", tmp.scales.dtype, tmp.scales.shape)
             print("g_idx", tmp.g_idx.dtype, tmp.g_idx.shape)
             print("wf", tmp.wf.dtype, tmp.wf.shape)
@@ -79,9 +81,9 @@ def svd_init(module, name=''):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='falcon-40b-instruct-4bit')
-    parser.add_argument('--falcon_ckpt_q', type=str, default='gptq_model-4bit--14g.safetensors')
-    parser.add_argument('--falcon_ckpt_f', type=str, default='tiiuae/falcon-40b-instruct')
+    parser.add_argument('--model_name', type=str, default='falcon-7b-instruct-4bit')
+    parser.add_argument('--falcon_ckpt_q', type=str, default='gptq_model-4bit-64g.safetensors')
+    parser.add_argument('--falcon_ckpt_f', type=str, default='tiiuae/falcon-7b-instruct')
     parser.add_argument('--backend', type=str, default='torch')
 
     parser.add_argument("--lora_r", default=8, type=int, help="Default: %(default)s")
